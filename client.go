@@ -1,13 +1,15 @@
 package chain
 
 import (
+	"context"
+
 	"github.com/mixarchitecture/i18np"
 )
 
 // Handler is a function that handles a request.
 // It returns a result and an error.
 // If the error is not nil, the chain will be stopped.
-type Handler[Params any, Result any] func(params Params) (*Result, *i18np.Error)
+type Handler[Params any, Result any] func(ctx context.Context, params Params) (*Result, *i18np.Error)
 
 // Chain is a chain of handlers.
 // It can be used to execute a series of handlers in order.
@@ -26,14 +28,14 @@ type Chain[Params any, Result any] interface {
 	// If an error occurs, the chain will be stopped.
 	// example:
 	// result, err := chain.Run(ctx, params)
-	Run(params Params) (*Result, *i18np.Error)
+	Run(ctx context.Context, params Params) (*Result, *i18np.Error)
 
 	// RunErr starts the chain.
 	// It will execute all handlers in the chain.
 	// If an error occurs, the chain will be stopped.
 	// example:
 	// result, err := chain.RunErr(ctx, params, err)
-	RunErr(params Params, err *i18np.Error) (*Result, *i18np.Error)
+	RunErr(ctx context.Context, params Params, err *i18np.Error) (*Result, *i18np.Error)
 }
 
 type chain[Params any, Result any] struct {
@@ -64,11 +66,11 @@ func (c *chain[Params, Result]) Use(handler ...Handler[Params, Result]) Chain[Pa
 // If an error occurs, the chain will be stopped.
 // example:
 // result, err := chain.Run(ctx, params)
-func (c *chain[Params, Result]) Run(params Params) (*Result, *i18np.Error) {
+func (c *chain[Params, Result]) Run(ctx context.Context, params Params) (*Result, *i18np.Error) {
 	var result *Result
 	var err *i18np.Error
 	for _, handler := range c.handlers {
-		result, err = handler(params)
+		result, err = handler(ctx, params)
 		if err != nil {
 			return result, err
 		}
@@ -81,9 +83,9 @@ func (c *chain[Params, Result]) Run(params Params) (*Result, *i18np.Error) {
 // If an error occurs, the chain will be stopped.
 // example:
 // result, err := chain.RunErr(ctx, params, err)
-func (c *chain[Params, Result]) RunErr(params Params, err *i18np.Error) (*Result, *i18np.Error) {
+func (c *chain[Params, Result]) RunErr(ctx context.Context, params Params, err *i18np.Error) (*Result, *i18np.Error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.Run(params)
+	return c.Run(ctx, params)
 }
