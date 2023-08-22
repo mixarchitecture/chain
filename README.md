@@ -1,3 +1,5 @@
+# this repository has been moved into [cillop](https://github.com/cilloparch/cillop).
+
 # Chain
 
 that simplifies error checking and cleaning your code.
